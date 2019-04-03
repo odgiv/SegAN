@@ -5,14 +5,14 @@ from numpy.random import normal
 from math import sqrt
 import argparse
 
-channel_dim = 3
+channel_dim = 1
 ndf = 64
 
 class GlobalConvBlock(nn.Module):
     def __init__(self, in_dim, out_dim, kernel_size):
         super(GlobalConvBlock, self).__init__()
-        pad0 = (kernel_size[0] - 1) / 2
-        pad1 = (kernel_size[1] - 1) / 2
+        pad0 = int((kernel_size[0] - 1) / 2)
+        pad1 = int((kernel_size[1] - 1) / 2)
 
         self.conv_l1 = nn.Conv2d(in_dim, out_dim, kernel_size=(kernel_size[0], 1),
                                  padding=(pad0, 0))
@@ -440,7 +440,7 @@ class NetC(nn.Module):
 
     def forward(self, input):
         if isinstance(input.data, torch.cuda.FloatTensor) and self.ngpu is 1:
-            batchsize = input.size()[0]
+            batchsize = input.size()[0]            
             out1 = self.convblock1(input)
             # out1 = self.convblock1_1(out1)
             out2 = self.convblock2(out1)

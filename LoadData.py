@@ -14,7 +14,7 @@ def makedirs(path):
 class Dataset(torch.utils.data.Dataset):
 
     def __init__(self, root):
-        self.size = (180,135)
+        self.size = (369,233)
         self.root = root
         if not os.path.exists(self.root):
             raise Exception("[!] {} not exists.".format(root))
@@ -28,7 +28,7 @@ class Dataset(torch.utils.data.Dataset):
         ])
         self.img_transform = Compose([
             ToTensor(),
-            Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
+            #Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
         ])
         self.hsv_transform = Compose([
             ToTensor(),
@@ -38,14 +38,14 @@ class Dataset(torch.utils.data.Dataset):
             ReLabel(255, 1),
         ])
         #sort file names
-        self.input_paths = sorted(glob(os.path.join(self.root, '{}/*.jpg'.format("ISIC-2017_Training_Data"))))
-        self.label_paths = sorted(glob(os.path.join(self.root, '{}/*.png'.format("ISIC-2017_Training_Part1_GroundTruth"))))
+        self.input_paths = sorted(glob(os.path.join(self.root, '{}/*.png'.format("juliana_images/images"))))
+        self.label_paths = sorted(glob(os.path.join(self.root, '{}/*.png'.format("juliana_images/labels"))))
         self.name = os.path.basename(root)
         if len(self.input_paths) == 0 or len(self.label_paths) == 0:
             raise Exception("No images/labels are found in {}".format(self.root))
 
     def __getitem__(self, index):
-        image = Image.open(self.input_paths[index]).convert('RGB')
+        image = Image.open(self.input_paths[index]).convert('L')
         # image_hsv = Image.open(self.input_paths[index]).convert('HSV')
         label = Image.open(self.label_paths[index]).convert('P')
 
@@ -105,14 +105,14 @@ class Dataset(torch.utils.data.Dataset):
 
 class Dataset_val(torch.utils.data.Dataset):
     def __init__(self, root):
-        size = (128,128)
+        size = (369,233)
         self.root = root
         if not os.path.exists(self.root):
             raise Exception("[!] {} not exists.".format(root))
         self.img_transform = Compose([
             Scale(size, Image.BILINEAR),
             ToTensor(),
-            Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
+            #Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
 
         ])
         self.hsv_transform = Compose([
@@ -125,14 +125,14 @@ class Dataset_val(torch.utils.data.Dataset):
             ReLabel(255, 1),
         ])
         #sort file names
-        self.input_paths = sorted(glob(os.path.join(self.root, '{}/*.jpg'.format("ISIC-2017_Test_v2_Data"))))
-        self.label_paths = sorted(glob(os.path.join(self.root, '{}/*.png'.format("ISIC-2017_Test_v2_Part1_GroundTruth"))))
+        self.input_paths = sorted(glob(os.path.join(self.root, '{}/*.png'.format("juliana_images/images"))))
+        self.label_paths = sorted(glob(os.path.join(self.root, '{}/*.png'.format("juliana_images/labels"))))
         self.name = os.path.basename(root)
         if len(self.input_paths) == 0 or len(self.label_paths) == 0:
             raise Exception("No images/labels are found in {}".format(self.root))
 
     def __getitem__(self, index):
-        image = Image.open(self.input_paths[index]).convert('RGB')
+        image = Image.open(self.input_paths[index]).convert('L')
         # image_hsv = Image.open(self.input_paths[index]).convert('HSV')
         label = Image.open(self.label_paths[index]).convert('P')
 
