@@ -122,6 +122,7 @@ class Lambda(object):
 
     def __call__(self, img):
         return self.lambd(img)
+        
 class Compose(object):
     """Composes several transforms together.
     Args:
