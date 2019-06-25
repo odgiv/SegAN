@@ -46,12 +46,12 @@ if __name__ == "__main__":
         pred = NetS(input)
         pred[pred < 0.5] = 0
         pred[pred >= 0.5] = 1
-        pred = pred.type(torch.LongTensor)
-        pred_np = pred.data.cpu().numpy()
-        
-        print(pred_np.shape)
+        pred = pred.type(torch.FloatTensor)
+        vutils.save_image(pred.data,
+                '%s/%d.png' % (opt.outpath, i),
+                normalize=True)
 
-        img = Image.fromarray((pred_np * 255).astype(np.uint8))
-        img.save(opt.outpath + "/" + str(i) + '.jpg') 
+        # img = Image.fromarray((pred_np * 255).astype(np.uint8))
+        # img.save(opt.outpath + "/" + str(i) + '.jpg') 
 
 
