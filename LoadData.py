@@ -3,7 +3,7 @@ import numpy as np
 from glob import glob
 from PIL import Image
 import torch
-from torchvision.transforms import Compose, CenterCrop, Normalize, ToTensor, RandomRotation, 
+from torchvision.transforms import Compose, CenterCrop, Normalize, ToTensor, RandomRotation
 from transform import ReLabel, ToLabel, Scale, HorizontalFlip, VerticalFlip, ColorJitter
 import random
 
@@ -28,7 +28,7 @@ class Dataset(torch.utils.data.Dataset):
             # Scale(self.size, Image.NEAREST),
         ])
         self.img_transform = Compose([
-            RandomRotation(15),
+            RandomRotation(10),
             ToTensor(),
             #Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
             # Normalize((0.5, ), (0.5, )),
@@ -128,8 +128,8 @@ class Dataset_val(torch.utils.data.Dataset):
             ReLabel(255, 1),
         ])
         #sort file names
-        self.input_paths = sorted(glob(os.path.join(self.root, '{}/*.png'.format("juliana_images/images"))))
-        self.label_paths = sorted(glob(os.path.join(self.root, '{}/*.png'.format("juliana_images/labels"))))
+        self.input_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/val_imgs/', '{}/*.jpg'.format("data"))))
+        self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/val_gts/', '{}/*.jpg'.format("data"))))
         self.name = os.path.basename(root)
         if len(self.input_paths) == 0 or len(self.label_paths) == 0:
             raise Exception("No images/labels are found in {}".format(self.root))

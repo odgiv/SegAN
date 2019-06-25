@@ -223,6 +223,6 @@ if __name__ == "__main__":
     # load training data
     dataloader = loader(Dataset('./'),opt.batchSize)
     # load testing data
-    dataloader_val = loader(Dataset_val('./'), 36)
+    dataloader_val = loader(Dataset_val('./'), opt.batchSize)
     
     main()  

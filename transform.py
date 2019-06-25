@@ -122,7 +122,7 @@ class Lambda(object):
 
     def __call__(self, img):
         return self.lambd(img)
-        
+
 class Compose(object):
     """Composes several transforms together.
     Args:
@@ -239,7 +239,8 @@ class ReLabel(object):
 
     def __call__(self, tensor):
         assert isinstance(tensor, torch.LongTensor), 'tensor needs to be LongTensor'
-        tensor[tensor == self.olabel] = self.nlabel
+        tensor[tensor >= 0.5] = self.nlabel
+        tensor[tensor < 0.5] = 0
         return tensor
 
 
