@@ -133,11 +133,7 @@ class Dataset_val(torch.utils.data.Dataset):
         ])
         #sort file names
         self.input_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/val_imgs/', '{}/*.jpg'.format("data"))))
-<<<<<<< HEAD
-        self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/val_gts/', '{}/*.jpg'.format("data"))))
-=======
         self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/val_gts/', '{}/*.jpg'.format("data")))) 
->>>>>>> 0b96ffce4bdba58b4fcf34fbf53a82899020b34f
         self.name = os.path.basename(root)
         if len(self.input_paths) == 0 or len(self.label_paths) == 0:
             raise Exception("No images/labels are found in {}".format(self.root))
@@ -166,6 +162,57 @@ class Dataset_val(torch.utils.data.Dataset):
         return len(self.input_paths)
 
 
+class Dataset_test(torch.utils.data.Dataset):
+    def __init__(self, root):
+        size = (465, 381)#(369,233)
+        self.root = root
+        if not os.path.exists(self.root):
+            raise Exception("[!] {} not exists.".format(root))
+        self.img_transform = Compose([
+            #Scale(size, Image.BILINEAR),
+            ToTensor(),
+            #Normalize((0.5, ), (0.5, )) #(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
+
+        ])
+        self.hsv_transform = Compose([
+            #Scale(size, Image.BILINEAR),
+            ToTensor(),
+        ])
+        self.label_transform = Compose([
+            #Scale(size, Image.NEAREST),
+            #ToLabel(),
+            ToTensor(),
+            ReLabel(255, 1),
+        ])
+        #sort file names
+        self.input_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/test_imgs/', '{}/*.jpg'.format("data"))))
+        self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/test_gts/', '{}/*.jpg'.format("data")))) 
+        self.name = os.path.basename(root)
+        if len(self.input_paths) == 0 or len(self.label_paths) == 0:
+            raise Exception("No images/labels are found in {}".format(self.root))
+
+    def __getitem__(self, index):
+        image = Image.open(self.input_paths[index]).convert('L')
+        # image_hsv = Image.open(self.input_paths[index]).convert('HSV')
+        label = Image.open(self.label_paths[index]).convert('P')
+
+        if self.img_transform is not None:
+            image = self.img_transform(image)
+            # image_hsv = self.hsv_transform(image_hsv)
+        else:
+            image = image
+            # image_hsv = image_hsv
+
+        if self.label_transform is not None:
+            label = self.label_transform(label)
+        else:
+            label = label
+        # image = torch.cat([image,image_hsv],0)
+
+        return image, label
+
+    def __len__(self):
+        return len(self.input_paths)
 
 def loader(dataset, batch_size, num_workers=8, shuffle=True):
 
