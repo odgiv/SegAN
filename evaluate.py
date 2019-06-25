@@ -32,10 +32,10 @@ if __name__ == "__main__":
     dataloader_test = loader(Dataset_test('./'), opt.batchSize)
 
     cudnn.benchmark = True
-    
+
     NetS = NetS(ngpu = opt.ngpu)
     NetS.load_state_dict(torch.load(opt.weight_path))
-
+    NetS.cuda()
     NetS.eval()
     for i, data in enumerate(dataloader_test, 1):
         input, gt = Variable(data[0]), Variable(data[1])
