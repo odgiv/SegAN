@@ -238,8 +238,9 @@ class ReLabel(object):
         self.nlabel = nlabel
 
     def __call__(self, tensor):
-        assert isinstance(tensor, torch.LongTensor), 'tensor needs to be LongTensor'
-        tensor[tensor == self.olabel] = self.nlabel
+        #assert isinstance(tensor, torch.LongTensor), 'tensor needs to be LongTensor'
+        tensor[tensor >= 0.5] = self.nlabel
+        tensor[tensor < 0.5] = 0
         return tensor
 
 
