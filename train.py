@@ -117,7 +117,7 @@ def main():
         print("===> Epoch[{}]({}/{}): G_Loss: {:.4f}".format(epoch, i, len(dataloader), loss_G.item()))
         print("===> Epoch[{}]({}/{}): D_Loss: {:.4f}".format(epoch, i, len(dataloader), loss_D.item()))
         vutils.save_image(data[0],
-                '%s/input.png' % opt.outpath,
+                '%s/input.png' % opt.outpath, 
                 normalize=True)
         vutils.save_image(data[1],
                 '%s/label.png' % opt.outpath,

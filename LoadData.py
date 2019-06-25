@@ -37,7 +37,9 @@ class Dataset(torch.utils.data.Dataset):
         #     ToTensor(),
         # ])
         self.label_transform = Compose([
-            ToLabel(),
+            RandomRotation(10),
+            ToTensor(),
+            #ToLabel(),
             ReLabel(255, 1),
         ])
         #sort file names
@@ -93,11 +95,12 @@ class Dataset(torch.utils.data.Dataset):
         # image = image.rotate(angle, resample=Image.BILINEAR)
         # image_hsv = image_hsv.rotate(angle, resample=Image.BILINEAR)
         # label = label.rotate(angle, resample=Image.NEAREST)
+        random.seed(247)
         image = self.img_transform(image)
         # image_hsv = self.hsv_transform(image_hsv)
         # image = torch.cat([image,image_hsv],0)
 
-
+        random.seed(247)
         label = self.label_transform(label)
 
         return image, label
@@ -124,12 +127,17 @@ class Dataset_val(torch.utils.data.Dataset):
         ])
         self.label_transform = Compose([
             #Scale(size, Image.NEAREST),
-            ToLabel(),
+            #ToLabel(),
+            ToTensor(),
             ReLabel(255, 1),
         ])
         #sort file names
         self.input_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/val_imgs/', '{}/*.jpg'.format("data"))))
+<<<<<<< HEAD
         self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/val_gts/', '{}/*.jpg'.format("data"))))
+=======
+        self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/val_gts/', '{}/*.jpg'.format("data")))) 
+>>>>>>> 0b96ffce4bdba58b4fcf34fbf53a82899020b34f
         self.name = os.path.basename(root)
         if len(self.input_paths) == 0 or len(self.label_paths) == 0:
             raise Exception("No images/labels are found in {}".format(self.root))
