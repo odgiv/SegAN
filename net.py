@@ -461,4 +461,3 @@ class NetC(nn.Module):
             print('For now we only support one GPU')
 
         return output
-

@@ -13,7 +13,12 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from net import NetS, NetC
 from LoadData import loader, Dataset_test
+from scipy.spatial.distance import directed_hausdorff
 
+#CUDA_VISIBLE_DEVICE=0 python evaluate.py --weight_path /home/tensorflow/git/odgiiv/code/segan/SegAN/outputs/NetS_epoch_0.pth
+
+def hausdorf_distance(a, b):
+    return max(directed_hausdorff(a, b)[0], directed_hausdorff(b, a)[0])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -33,25 +38,48 @@ if __name__ == "__main__":
 
     cudnn.benchmark = True
 
+    IoUs = []
+    hds = []
+
     NetS = NetS(ngpu = opt.ngpu)
     NetS.load_state_dict(torch.load(opt.weight_path))
     NetS.cuda()
     NetS.eval()
     for i, data in enumerate(dataloader_test, 1):
-        input, gt = Variable(data[0]), Variable(data[1])
+        input, label = Variable(data[0]), Variable(data[1])
         if cuda:
             input = input.cuda()
-            gt = gt.cuda()
+            label = label.cuda()
 
         pred = NetS(input)
         pred[pred < 0.5] = 0
         pred[pred >= 0.5] = 1
         pred = pred.type(torch.FloatTensor)
+
+        pred_np = pred.data.cpu().numpy()
+        label = label.data.cpu().numpy()
+
+        IoU = np.sum(pred_np[label == 1]) / float(np.sum(pred_np) + np.sum(label) - np.sum(pred_np[label == 1]))
+        print("Iou: ", IoU)
+        IoUs.append(IoU)
+
+        label = np.squeeze(label) 
+        pred_np = np.squeeze(pred_np)
+
+        pred_locations = np.argwhere(pred_np == 1)
+        label_locations = np.argwhere(label == 1)        
+
+        hd = hausdorf_distance(pred_locations, label_locations)
+        hds.append(hd)
+
         vutils.save_image(pred.data,
                 '%s/%d.png' % (opt.outpath, i),
                 normalize=True)
 
-        # img = Image.fromarray((pred_np * 255).astype(np.uint8))
-        # img.save(opt.outpath + "/" + str(i) + '.jpg') 
+    
+    # IoUs = np.array(IoUs, dtype=np.float64)
+    mIoU = np.mean(IoUs, axis=0)
+    mhd = np.mean(hds, axis=0)
+    print("mIoU: ", mIoU, "mHausdorf:", mhd)
 
 
