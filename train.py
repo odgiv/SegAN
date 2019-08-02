@@ -14,6 +14,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from net import NetS, NetC
 from LoadData import Dataset, loader, Dataset_val
+from util import hausdorf_distance
 
 # custom weights initialization called on NetS and NetC
 def weights_init(m):
@@ -125,47 +126,60 @@ def main():
         vutils.save_image(output.data,
                 '%s/result.png' % opt.outpath,
                 normalize=True)
-        if epoch % 10 == 0:
-            NetS.eval()
-            IoUs, dices = [], []
-            for i, data in enumerate(dataloader_val, 1):
-                input, gt = Variable(data[0]), Variable(data[1])
-                if cuda:
-                    input = input.cuda()
-                    gt = gt.cuda()
-                pred = NetS(input)
-                pred[pred < 0.5] = 0
-                pred[pred >= 0.5] = 1
-                pred = pred.type(torch.LongTensor)
-                pred_np = pred.data.cpu().numpy()
-                gt = gt.data.cpu().numpy()
-                for x in range(input.size()[0]):
-                    IoU = np.sum(pred_np[x][gt[x]==1]) / float(np.sum(pred_np[x]) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x]==1]))
-                    dice = np.sum(pred_np[x][gt[x]==1])*2 / float(np.sum(pred_np[x]) + np.sum(gt[x]))
-                    IoUs.append(IoU)
-                    dices.append(dice)
+        # if epoch % 10 == 0:
+        NetS.eval()
+        IoUs, dices, hds = [], [], []
+        for i, data in enumerate(dataloader_val, 1):
+            input, gt = Variable(data[0]), Variable(data[1])
+            if cuda:
+                input = input.cuda()
+                gt = gt.cuda()
+            pred = NetS(input)
+            pred[pred < 0.5] = 0
+            pred[pred >= 0.5] = 1
+            pred = pred.type(torch.LongTensor)
+            pred_np = pred.data.cpu().numpy()
+            gt = gt.data.cpu().numpy()
+            
 
-            NetS.train()
-            IoUs = np.array(IoUs, dtype=np.float64)
-            dices = np.array(dices, dtype=np.float64)
-            mIoU = np.mean(IoUs, axis=0)
-            mdice = np.mean(dices, axis=0)
-            print('mIoU: {:.4f}'.format(mIoU))
-            print('Dice: {:.4f}'.format(mdice))
-            if mIoU > max_iou:
-                max_iou = mIoU
-                torch.save(NetS.state_dict(), '%s/NetS_epoch_%d.pth' % (opt.outpath, epoch))
-            vutils.save_image(data[0],
-                    '%s/input_val.png' % opt.outpath,
-                    normalize=True)
-            vutils.save_image(data[1],
-                    '%s/label_val.png' % opt.outpath,
-                    normalize=True)
-            pred = pred.type(torch.FloatTensor)
-            vutils.save_image(pred.data,
-                    '%s/result_val.png' % opt.outpath,
-                    normalize=True)
-        if epoch % 25 == 0:
+            for x in range(input.size()[0]):
+                IoU = np.sum(pred_np[x][gt[x]==1]) / float(np.sum(pred_np[x]) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x]==1]))
+                dice = np.sum(pred_np[x][gt[x]==1])*2 / float(np.sum(pred_np[x]) + np.sum(gt[x]))
+                
+                pred_locations = np.argwhere(pred_np[x] == 1)
+                label_locations = np.argwhere(gt[x] == 1) 
+
+                hd = hausdorf_distance(pred_locations, label_locations)
+                IoUs.append(IoU)
+                dices.append(dice)
+                hds.append(hd)
+
+        NetS.train()
+        IoUs = np.array(IoUs, dtype=np.float64)
+        dices = np.array(dices, dtype=np.float64)
+        hds = np.array(hds, dtype=np.float64)        
+        mIoU = np.mean(IoUs, axis=0)
+        mdice = np.mean(dices, axis=0)
+        mhd = np.mean(hds, axis=0)
+
+        print('mIoU: {:.4f}'.format(mIoU))
+        print('mDice: {:.4f}'.format(mdice))
+        print('mHd: {:.4f}'.format(mhd))
+
+        if mIoU > max_iou:
+            max_iou = mIoU
+            torch.save(NetS.state_dict(), '%s/NetS_epoch_%d.pth' % (opt.outpath, epoch))
+        vutils.save_image(data[0],
+                '%s/input_val.png' % opt.outpath,
+                normalize=True)
+        vutils.save_image(data[1],
+                '%s/label_val.png' % opt.outpath,
+                normalize=True)
+        pred = pred.type(torch.FloatTensor)
+        vutils.save_image(pred.data,
+                '%s/result_val.png' % opt.outpath,
+                normalize=True)
+        if epoch % 10 == 0:
             lr = lr*decay
             if lr <= 0.00000001:
                 lr = 0.00000001

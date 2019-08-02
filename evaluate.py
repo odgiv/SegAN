@@ -13,12 +13,9 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from net import NetS, NetC
 from LoadData import loader, Dataset_test
-from scipy.spatial.distance import directed_hausdorff
+from util import hausdorf_distance
 
-#CUDA_VISIBLE_DEVICE=0 python evaluate.py --weight_path /home/tensorflow/git/odgiiv/code/segan/SegAN/outputs/NetS_epoch_0.pth
-
-def hausdorf_distance(a, b):
-    return max(directed_hausdorff(a, b)[0], directed_hausdorff(b, a)[0])
+#CUDA_VISIBLE_DEVICE=0 python evaluate.py --weight_path /home/tensorflow/git/odgiiv/code/segan/SegAN/outputs/NetS_epoch_0.pth --store_images
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -26,6 +23,7 @@ if __name__ == "__main__":
     parser.add_argument('--batchSize', type=int, default=1)
     parser.add_argument('--ngpu', type=int, default=1)
     parser.add_argument('--weight_path', type=str)
+    parser.add_argument("--store_images", default=False, action="store_true")
     opt = parser.parse_args()
 
     try:
@@ -71,10 +69,30 @@ if __name__ == "__main__":
 
         hd = hausdorf_distance(pred_locations, label_locations)
         hds.append(hd)
+        print("Hausdorf: ", hd)
 
-        vutils.save_image(pred.data,
-                '%s/%d.png' % (opt.outpath, i),
-                normalize=True)
+        img = np.squeeze(input.data.cpu().numpy()) * 255
+        pred_img = pred_np * 255
+        label_img = label * 255
+        if opt.store_images:
+            pred_img = Image.fromarray(pred_img.astype(np.uint8), mode='P')
+            label_img = Image.fromarray(label_img.astype(np.uint8), mode='P')
+            img = Image.fromarray(img.astype(np.uint8), mode='P')
+
+            I = Image.new('RGB', (img.size[0]*5, img.size[1]))
+            I.paste(img, (0, 0))
+            I.paste(label_img, (img.size[0], 0))
+            I.paste(pred_img, (img.size[0]*2, 0))
+            I.paste(Image.blend(img.convert("L"), label_img.convert("L"), 0.2), (img.size[0]*3, 0))
+            I.paste(Image.blend(img.convert("L"), pred_img.convert("L"), 0.2), (img.size[0]*4, 0))
+            
+
+            name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)
+            I.save(os.path.join(opt.outpath, name))
+
+        # vutils.save_image(pred.data,
+        #         '%s/%d.png' % (opt.outpath, i),
+        #         normalize=True)
 
     
     # IoUs = np.array(IoUs, dtype=np.float64)
