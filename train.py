@@ -170,8 +170,8 @@ def main():
         # if mhd < min_hd or min_hd == 0:
         #     min_hd = mhd
         torch.save(NetS.state_dict(), '{}/NetS_epoch_{}_mHd_{:.4f}_mIoU_{:.4f}.pth'.format(opt.outpath, epoch, mhd, mIoU))
-        vutils.save_image(data[0], '%s/input_val.png' % opt.outpath, normalize=True)
-        vutils.save_image(data[1], '%s/label_val.png' % opt.outpath, normalize=True)
+        vutils.save_image(data[0], '{}/input_val_epoch_{}.png'.format(opt.outpath, str(epoch)), normalize=True)
+        vutils.save_image(data[1], '{}/label_val_epoch_{}.png'.format(opt.outpath, str(epoch)), normalize=True)
         pred = pred.type(torch.FloatTensor)
         vutils.save_image(pred.data, '%s/result_val.png' % opt.outpath, normalize=True)
         if epoch % 5 == 0:
