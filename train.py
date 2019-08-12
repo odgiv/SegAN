@@ -54,6 +54,7 @@ def main():
     optimizerD = optim.Adam(NetC.parameters(), lr=lr, betas=(opt.beta1, 0.999))
 
     max_iou = 0
+    min_hd = 0
     NetS.train()
     for epoch in range(opt.niter):
         for i, data in enumerate(dataloader, 1):
@@ -166,20 +167,14 @@ def main():
         print('mDice: {:.4f}'.format(mdice))
         print('mHd: {:.4f}'.format(mhd))
 
-        if mIoU > max_iou:
-            max_iou = mIoU
-            torch.save(NetS.state_dict(), '%s/NetS_epoch_%d.pth' % (opt.outpath, epoch))
-        vutils.save_image(data[0],
-                '%s/input_val.png' % opt.outpath,
-                normalize=True)
-        vutils.save_image(data[1],
-                '%s/label_val.png' % opt.outpath,
-                normalize=True)
+        # if mhd < min_hd or min_hd == 0:
+        #     min_hd = mhd
+        torch.save(NetS.state_dict(), '{}/NetS_epoch_{}_mHd_{:.4f}_mIoU_{:.4f}.pth'.format(opt.outpath, epoch, mhd, mIoU))
+        vutils.save_image(data[0], '%s/input_val.png' % opt.outpath, normalize=True)
+        vutils.save_image(data[1], '%s/label_val.png' % opt.outpath, normalize=True)
         pred = pred.type(torch.FloatTensor)
-        vutils.save_image(pred.data,
-                '%s/result_val.png' % opt.outpath,
-                normalize=True)
-        if epoch % 10 == 0:
+        vutils.save_image(pred.data, '%s/result_val.png' % opt.outpath, normalize=True)
+        if epoch % 5 == 0:
             lr = lr*decay
             if lr <= 0.00000001:
                 lr = 0.00000001

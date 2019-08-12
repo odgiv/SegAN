@@ -3,7 +3,7 @@ import numpy as np
 from glob import glob
 from PIL import Image
 import torch
-from torchvision.transforms import Compose, CenterCrop, Normalize, ToTensor, RandomRotation
+from torchvision.transforms import Compose, CenterCrop, Normalize, ToTensor, RandomAffine
 from transform import ReLabel, ToLabel, Scale, HorizontalFlip, VerticalFlip, ColorJitter
 import random
 
@@ -28,7 +28,7 @@ class Dataset(torch.utils.data.Dataset):
             # Scale(self.size, Image.NEAREST),
         ])
         self.img_transform = Compose([
-            RandomRotation(10),
+            RandomAffine(degrees=10, translate=(0.2, 0.1), scale=(0,0.2), shearing=0.2, resample=Image.BILINEAR, fill=0),
             ToTensor(),
             #Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
             # Normalize((0.5, ), (0.5, )),
@@ -37,14 +37,14 @@ class Dataset(torch.utils.data.Dataset):
         #     ToTensor(),
         # ])
         self.label_transform = Compose([
-            RandomRotation(10),
+            RandomAffine(degrees=10, translate=(0.2, 0.1), scale=(0,0.2), shearing=0.2, resample=Image.BILINEAR, fill=0),
             ToTensor(),
             #ToLabel(),
             ReLabel(255, 1),
         ])
         #sort file names
-        self.input_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/imgs/', '{}/*.jpg'.format("data"))))
-        self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/gts', '{}/*.jpg'.format("data"))))
+        self.input_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/experiments_data/train3500_imgs/', '{}/*.jpg'.format("data"))))
+        self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/experiments_data/train3500_gts', '{}/*.jpg'.format("data"))))
         self.name = os.path.basename(root)
         if len(self.input_paths) == 0 or len(self.label_paths) == 0:
             raise Exception("No images/labels are found in {}".format(self.root))
@@ -132,8 +132,8 @@ class Dataset_val(torch.utils.data.Dataset):
             ReLabel(255, 1),
         ])
         #sort file names
-        self.input_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/val_imgs/', '{}/*.jpg'.format("data"))))
-        self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/val_gts/', '{}/*.jpg'.format("data")))) 
+        self.input_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/experiments_data/val_imgs/', '{}/*.jpg'.format("data"))))
+        self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/experiments_data/val_gts/', '{}/*.jpg'.format("data")))) 
         self.name = os.path.basename(root)
         if len(self.input_paths) == 0 or len(self.label_paths) == 0:
             raise Exception("No images/labels are found in {}".format(self.root))
