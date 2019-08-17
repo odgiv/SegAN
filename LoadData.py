@@ -28,7 +28,7 @@ class Dataset(torch.utils.data.Dataset):
             # Scale(self.size, Image.NEAREST),
         ])
         self.img_transform = Compose([
-            RandomAffine(degrees=10, translate=(0.2, 0.1), scale=(0,0.2), shearing=0.2, resample=Image.BILINEAR, fill=0),
+            RandomRotation(10),
             ToTensor(),
             #Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
             # Normalize((0.5, ), (0.5, )),
@@ -37,14 +37,14 @@ class Dataset(torch.utils.data.Dataset):
         #     ToTensor(),
         # ])
         self.label_transform = Compose([
-            RandomAffine(degrees=10, translate=(0.2, 0.1), scale=(0,0.2), shearing=0.2, resample=Image.BILINEAR, fill=0),
+            RandomRotation(10),
             ToTensor(),
             #ToLabel(),
             ReLabel(255, 1),
         ])
         #sort file names
-        self.input_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/experiments_data/train3500_imgs/', '{}/*.jpg'.format("data"))))
-        self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/experiments_data/train3500_gts', '{}/*.jpg'.format("data"))))
+        self.input_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/experiments_data/train2500_imgs/', '{}/*.jpg'.format("data"))))
+        self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/experiments_data/train2500_gts', '{}/*.jpg'.format("data"))))
         self.name = os.path.basename(root)
         if len(self.input_paths) == 0 or len(self.label_paths) == 0:
             raise Exception("No images/labels are found in {}".format(self.root))
@@ -185,8 +185,8 @@ class Dataset_test(torch.utils.data.Dataset):
             ReLabel(255, 1),
         ])
         #sort file names
-        self.input_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/test_imgs/', '{}/*.jpg'.format("data"))))
-        self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/data/test_gts/', '{}/*.jpg'.format("data")))) 
+        self.input_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/experiments_data/test300_imgs/', '{}/*.jpg'.format("data"))))
+        self.label_paths = sorted(glob(os.path.join('/media/dataraid/tensorflow/segm/experiments_data/test300_gts/', '{}/*.jpg'.format("data")))) 
         self.name = os.path.basename(root)
         if len(self.input_paths) == 0 or len(self.label_paths) == 0:
             raise Exception("No images/labels are found in {}".format(self.root))

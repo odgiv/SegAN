@@ -173,8 +173,8 @@ def main():
         vutils.save_image(data[0], '{}/input_val_epoch_{}.png'.format(opt.outpath, str(epoch)), normalize=True)
         vutils.save_image(data[1], '{}/label_val_epoch_{}.png'.format(opt.outpath, str(epoch)), normalize=True)
         pred = pred.type(torch.FloatTensor)
-        vutils.save_image(pred.data, '%s/result_val.png' % opt.outpath, normalize=True)
-        if epoch % 5 == 0:
+        vutils.save_image(pred.data, '{}/result_val_epoch_{}.png'.format(opt.outpath, str(epoch)), normalize=True)
+        if epoch % 5 == 0 and epoch > 0:
             lr = lr*decay
             if lr <= 0.00000001:
                 lr = 0.00000001

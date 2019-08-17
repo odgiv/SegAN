@@ -14,6 +14,7 @@ import torch.nn.functional as F
 from net import NetS, NetC
 from LoadData import loader, Dataset_test
 from util import hausdorf_distance
+from skimage.morphology import skeletonize, label as find_connected
 
 #CUDA_VISIBLE_DEVICE=0 python evaluate.py --weight_path /home/tensorflow/git/odgiiv/code/segan/SegAN/outputs/NetS_epoch_0.pth --store_images
 
@@ -23,9 +24,12 @@ if __name__ == "__main__":
     parser.add_argument('--batchSize', type=int, default=1)
     parser.add_argument('--ngpu', type=int, default=1)
     parser.add_argument('--weight_path', type=str)
+    parser.add_argument("--exp_id", type=int)
     parser.add_argument("--store_images", default=False, action="store_true")
+    parser.add_argument("--thinning", default=False, action="store_true")
     opt = parser.parse_args()
 
+    
     try:
         os.makedirs(opt.outpath)
     except OSError:
@@ -56,6 +60,18 @@ if __name__ == "__main__":
 
         pred_np = pred.data.cpu().numpy()
         label = label.data.cpu().numpy()
+
+        if opt.thinning:            
+            label = skeletonize(np.squeeze(label))
+            pred_np = skeletonize(np.squeeze(pred_np))
+            new_pred = np.array(pred_np)
+
+            labels, num = find_connected(pred_np, return_num=True)
+            for n in range(1, num):
+                if np.sum(labels == n) <= 20:
+                    new_pred[labels == n] = 0
+            
+            pred_np = new_pred
 
         IoU = np.sum(pred_np[label == 1]) / float(np.sum(pred_np) + np.sum(label) - np.sum(pred_np[label == 1]))
         print("Iou: ", IoU)
@@ -97,7 +113,11 @@ if __name__ == "__main__":
     
     # IoUs = np.array(IoUs, dtype=np.float64)
     mIoU = np.mean(IoUs, axis=0)
-    mhd = np.mean(hds, axis=0)
-    print("mIoU: ", mIoU, "mHausdorf:", mhd)
+    mHd = np.mean(hds, axis=0)
+    print("mIoU: ", mIoU, "mHausdorf:", mHd)
+    file_name = os.path.basename(opt.weight_path)
+    epoch = file_name[len("NetS_epoch_"):file_name.find("_mHd")]
+    print("epoch", epoch)
+    os.rename(opt.outpath, os.path.join("./exp{}_epoch{}_mIoU_{:.4f}_mHd_{:.4f}".format(opt.exp_id, epoch, mIoU, mHd)))
 
 
